@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="emgrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A5C36" />
+      <stop offset="100%" stop-color="#05331E" />
+    </linearGradient>
+    <linearGradient id="goldgrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FACC15" />
+      <stop offset="100%" stop-color="#CA8A04" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#emgrad)" />
+  <circle cx="256" cy="256" r="210" fill="none" stroke="url(#goldgrad)" stroke-width="14" stroke-dasharray="12 8" />
+  <circle cx="256" cy="256" r="185" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.3" />
+  <!-- Central Emblem: Stylized V & B with Bengal Tiger / Rising Sun motif -->
+  <path d="M160 160 L256 350 L352 160" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M256 180 L256 290" fill="none" stroke="url(#goldgrad)" stroke-width="18" stroke-linecap="round" />
+  <circle cx="256" cy="140" r="22" fill="url(#goldgrad)" />
+</svg>

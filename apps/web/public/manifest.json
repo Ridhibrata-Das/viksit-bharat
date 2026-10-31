@@ -1,0 +1,70 @@
+{
+  "name": "Viksit Bengal Dashboard & $1 Trillion Economy",
+  "short_name": "Viksit Bengal",
+  "description": "Real-time econometric and policy accountability platform tracking 141 state commitments across 23 districts toward a $1T economy.",
+  "start_url": "/en",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0A5C36",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["government", "finance", "productivity", "news"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Executive Dashboard",
+      "short_name": "Dashboard",
+      "description": "Live GSDP trajectory and telemetry",
+      "url": "/en/dashboard",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "141 Commitments",
+      "short_name": "Promises",
+      "description": "Filter policy promises by sector and status",
+      "url": "/en/promises",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "23 Districts Map",
+      "short_name": "Districts",
+      "description": "Explore district delivery scores and leaderboards",
+      "url": "/en/districts",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Governance CMS",
+      "short_name": "Admin",
+      "description": "Lifecycle manager and evidence audit queue",
+      "url": "/en/admin",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

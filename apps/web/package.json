@@ -1,0 +1,39 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 3000 -H 0.0.0.0",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "14.2.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next-intl": "^3.12.0",
+    "lucide-react": "^0.378.0",
+    "recharts": "^2.12.7",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^4.2.1",
+    "tailwindcss": "^3.4.3",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.3.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-progress": "^1.0.3",
+    "@google/genai": "^1.44.0",
+    "firebase": "^11.4.0",
+    "@viksit/database": "*",
+    "@viksit/shared": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "@types/leaflet": "^1.9.12",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "typescript": "^5.4.5"
+  }
+}
