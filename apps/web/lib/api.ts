@@ -8,7 +8,8 @@ import {
   LiveAnalyticsSummary,
 } from '@viksit/shared';
 
-// Supports NEXT_PUBLIC_API_URL (e.g. http://localhost:3001) or built-in Next.js /api routes on port 3000
+// Supports Vercel internal service binding (API_SERVICE_URL), NEXT_PUBLIC_API_URL, or local fallback
+const BOUND_API_SERVICE_URL = process.env.API_SERVICE_URL;
 const CONFIGURED_API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 function resolveApiUrl(path: string): string {
@@ -16,6 +17,11 @@ function resolveApiUrl(path: string): string {
   if (typeof window !== 'undefined') {
     // Use same-origin /api routes in browser for zero-latency, resilient full-stack operation
     return `/api${cleanPath}`;
+  }
+  // Server-side runtime (functions/SSR): use Vercel service binding internal URL if available
+  if (BOUND_API_SERVICE_URL) {
+    const internalBase = BOUND_API_SERVICE_URL.replace(/\/+$/, '');
+    return `${internalBase}/api${cleanPath}`;
   }
   const baseUrl = CONFIGURED_API_URL || 'http://127.0.0.1:3000/api';
   return `${baseUrl}${cleanPath}`;

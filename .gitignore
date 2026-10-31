@@ -1,0 +1,15 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.next/
+**/.next/
+.next-dev/
+.env
+.env.local
+.pgdata
+.turbo
+dist-hostinger/
+dist-hostinger.zip
+tsconfig.tsbuildinfo
+
