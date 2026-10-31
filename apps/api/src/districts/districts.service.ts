@@ -50,7 +50,6 @@ export class DistrictsService {
         where: {
           code: {
             equals: code,
-            mode: 'insensitive',
           },
         },
         include: {

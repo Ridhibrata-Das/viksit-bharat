@@ -54,7 +54,6 @@ export class IndicatorsService {
       where: {
         code: {
           equals: code,
-          mode: 'insensitive',
         },
       },
       include: {
@@ -68,7 +67,7 @@ export class IndicatorsService {
       throw new NotFoundException(`Indicator with code ${code} not found`);
     }
 
-    const values = ind.values.map((v) => {
+    const values = ((ind as any).values || []).map((v: any) => {
       const yr = new Date(v.date).getFullYear();
       return {
         id: v.id,
@@ -109,7 +108,6 @@ export class IndicatorsService {
       where: {
         code: {
           equals: code,
-          mode: 'insensitive',
         },
       },
     });

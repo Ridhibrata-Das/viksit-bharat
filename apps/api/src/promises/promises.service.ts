@@ -84,7 +84,6 @@ export class PromisesService {
       where: {
         code: {
           equals: code,
-          mode: 'insensitive',
         },
       },
       include: {
@@ -124,7 +123,7 @@ export class PromisesService {
 
     return {
       ...promise,
-      statusHistory: promise.history.map((h) => ({
+      statusHistory: ((promise as any).history || []).map((h: any) => ({
         id: h.id,
         status: h.newStatus,
         newStatus: h.newStatus,
@@ -248,7 +247,6 @@ export class PromisesService {
       where: {
         code: {
           equals: code,
-          mode: 'insensitive',
         },
       },
     });

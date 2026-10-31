@@ -1,6 +1,7 @@
 {
   "name": "viksit-bengal-dashboard",
   "private": true,
+  "packageManager": "npm@10.8.2",
   "scripts": {
     "build": "npm run build --workspace=apps/web",
     "dev": "npm run dev --workspace=apps/web",

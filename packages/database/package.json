@@ -4,6 +4,8 @@
   "main": "./index.js",
   "types": "./index.ts",
   "scripts": {
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:generate": "prisma generate"
