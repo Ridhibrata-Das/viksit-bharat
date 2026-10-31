@@ -1,0 +1,8 @@
+{
+  "name": "Viksit Bengal Dashboard",
+  "description": "West Bengal Governance, Policy Commitments, and $1 Trillion Economic Progress Tracker across 23 districts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

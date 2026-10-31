@@ -1,0 +1,207 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user account profile and role permissions for Viksit Bengal governance platform.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Authentication user UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified user email address",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User full display name",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Google profile avatar URL",
+          "minLength": 0,
+          "maxLength": 512
+        },
+        "role": {
+          "type": "string",
+          "description": "RBAC role controlling access to CMS and moderation tools",
+          "enum": ["CITIZEN", "RESEARCHER", "ADMIN"],
+          "maxLength": 32
+        },
+        "accessStatus": {
+          "type": "string",
+          "description": "Account access barrier status",
+          "enum": ["APPROVED", "RESTRICTED"],
+          "maxLength": 32
+        },
+        "districtCode": {
+          "type": "string",
+          "description": "Primary West Bengal district code affiliation",
+          "minLength": 2,
+          "maxLength": 16
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when user registered"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when user profile or role was last updated"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "displayName",
+        "photoURL",
+        "role",
+        "accessStatus",
+        "districtCode",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted registry of administrator UIDs used by Firestore security rules.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Administrator Firebase UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Administrator email address",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "grantedByUid": {
+          "type": "string",
+          "description": "UID of the administrator who granted admin access",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "status": {
+          "type": "string",
+          "description": "Admin privilege status",
+          "enum": ["ACTIVE", "REVOKED"],
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when admin privilege was granted"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last status change"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "grantedByUid",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AccessAuditLog": {
+      "title": "AccessAuditLog",
+      "description": "Audit log of authenticated route accesses and role permission checks.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Authenticated user UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Authenticated user email",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "route": {
+          "type": "string",
+          "description": "Protected route accessed",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "role": {
+          "type": "string",
+          "description": "Active RBAC role at time of access",
+          "enum": ["CITIZEN", "RESEARCHER", "ADMIN"],
+          "maxLength": 32
+        },
+        "action": {
+          "type": "string",
+          "description": "Governance action performed",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "status": {
+          "type": "string",
+          "description": "Audit log lifecycle status",
+          "enum": ["LOGGED", "ARCHIVED"],
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when event was logged"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "route",
+        "role",
+        "action",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores authenticated user profiles, district affiliation, and RBAC roles."
+    },
+    "/admins/{adminId}": {
+      "schema": "AdminRecord",
+      "description": "Stores verified administrator UIDs for zero-trust security rule verification."
+    },
+    "/access_logs/{logId}": {
+      "schema": "AccessAuditLog",
+      "description": "Stores audit trails of authenticated user logins and protected portal actions."
+    }
+  }
+}

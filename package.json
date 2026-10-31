@@ -1,0 +1,26 @@
+{
+  "name": "viksit-bengal-dashboard",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --workspace=apps/web",
+    "dev": "npm run dev --workspace=apps/web",
+    "start": "npm run start --workspace=apps/web",
+    "lint": "npm run lint --workspace=apps/web",
+    "bundle:hostinger": "node scripts/build-hostinger.js",
+    "test:e2e": "node tests/e2e-runner.js"
+  },
+  "devDependencies": {
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
+    "eslint": "^9.0.0",
+    "firebase": "^13.0.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.5"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@google/genai": "^1.44.0"
+  }
+}

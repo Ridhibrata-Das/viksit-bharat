@@ -1,0 +1,295 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Safety Net (Default-Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Hardened Global Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'leaplearnindia@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isVerifiedUser() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation Blueprint: UserProfile (/users/{userId})
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'uid',
+          'email',
+          'displayName',
+          'photoURL',
+          'role',
+          'accessStatus',
+          'districtCode',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid',
+          'email',
+          'displayName',
+          'photoURL',
+          'role',
+          'accessStatus',
+          'districtCode',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.photoURL is string && data.photoURL.size() >= 0 && data.photoURL.size() <= 512
+        && data.role is string && data.role.size() <= 32 && (
+          data.role == 'CITIZEN' || data.role == 'RESEARCHER' || data.role == 'ADMIN'
+        )
+        && data.accessStatus is string && data.accessStatus.size() <= 32 && (
+          data.accessStatus == 'APPROVED' || data.accessStatus == 'RESTRICTED'
+        )
+        && data.districtCode is string && data.districtCode.size() >= 2 && data.districtCode.size() <= 16
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: AdminRecord (/admins/{adminId})
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll([
+          'uid',
+          'email',
+          'grantedByUid',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid',
+          'email',
+          'grantedByUid',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.grantedByUid is string && data.grantedByUid.size() >= 1 && data.grantedByUid.size() <= 128 && data.grantedByUid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.status is string && data.status.size() <= 32 && (
+          data.status == 'ACTIVE' || data.status == 'REVOKED'
+        )
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: AccessAuditLog (/access_logs/{logId})
+    function isValidAccessLog(data) {
+      return data.keys().hasAll([
+          'uid',
+          'email',
+          'route',
+          'role',
+          'action',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid',
+          'email',
+          'route',
+          'role',
+          'action',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.route is string && data.route.size() >= 1 && data.route.size() <= 200
+        && data.role is string && data.role.size() <= 32 && (
+          data.role == 'CITIZEN' || data.role == 'RESEARCHER' || data.role == 'ADMIN'
+        )
+        && data.action is string && data.action.size() >= 1 && data.action.size() <= 64
+        && data.status is string && data.status.size() <= 32 && (
+          data.status == 'LOGGED' || data.status == 'ARCHIVED'
+        )
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Collection 1: /users/{userId}
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (
+        request.auth.uid == userId || isAdmin()
+      );
+
+      allow list: if isSignedIn() && (
+        existing().uid == request.auth.uid || isBootstrappedAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == userId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (
+          (
+            request.auth.uid == userId
+            && incoming().uid == request.auth.uid
+            && incoming().role == 'CITIZEN'
+            && incoming().accessStatus == 'APPROVED'
+          )
+          || (
+            isAdmin()
+            && incoming().accessStatus == 'APPROVED'
+          )
+        );
+
+      allow update: if (
+        isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && (existing().accessStatus != 'RESTRICTED' || isAdmin())
+        && incoming().uid == existing().uid
+        && incoming().email == existing().email
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          // Action 1: Owner updates own display profile (cannot change role or accessStatus)
+          (
+            request.auth.uid == userId
+            && incoming().uid == request.auth.uid
+            && incoming().role == existing().role
+            && incoming().accessStatus == existing().accessStatus
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'displayName',
+              'photoURL',
+              'districtCode',
+              'updatedAt'
+            ])
+          )
+          // Action 2: Admin updates user role or accessStatus
+          || (
+            isAdmin()
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'role',
+              'accessStatus',
+              'districtCode',
+              'displayName',
+              'updatedAt'
+            ])
+          )
+        )
+      );
+
+      allow delete: if isVerifiedUser() && isValidId(userId) && isAdmin();
+    }
+
+    // Collection 2: /admins/{adminId}
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && (
+        request.auth.uid == adminId || isAdmin()
+      );
+
+      allow list: if isSignedIn() && (
+        existing().uid == request.auth.uid || isBootstrappedAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidId(adminId)
+        && isValidAdminRecord(incoming())
+        && incoming().uid == adminId
+        && incoming().grantedByUid == request.auth.uid
+        && incoming().status == 'ACTIVE'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && isAdmin()
+        && exists(/databases/$(database)/documents/users/$(adminId));
+
+      allow update: if (
+        isVerifiedUser()
+        && isValidId(adminId)
+        && isValidAdminRecord(incoming())
+        && (existing().status != 'REVOKED' || isAdmin())
+        && incoming().uid == existing().uid
+        && incoming().email == existing().email
+        && incoming().grantedByUid == existing().grantedByUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && isAdmin()
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'status',
+          'updatedAt'
+        ])
+      );
+
+      allow delete: if isVerifiedUser() && isValidId(adminId) && isAdmin();
+    }
+
+    // Collection 3: /access_logs/{logId}
+    match /access_logs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId) && (
+        existing().uid == request.auth.uid || isAdmin()
+      );
+
+      allow list: if isSignedIn() && (
+        existing().uid == request.auth.uid || isBootstrappedAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidId(logId)
+        && isValidAccessLog(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().status == 'LOGGED'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+
+      allow update: if (
+        isVerifiedUser()
+        && isValidId(logId)
+        && isValidAccessLog(incoming())
+        && (existing().status != 'ARCHIVED' || isAdmin())
+        && incoming().uid == existing().uid
+        && incoming().email == existing().email
+        && incoming().route == existing().route
+        && incoming().role == existing().role
+        && incoming().action == existing().action
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && isAdmin()
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'status',
+          'updatedAt'
+        ])
+      );
+
+      allow delete: if isVerifiedUser() && isValidId(logId) && isAdmin();
+    }
+  }
+}

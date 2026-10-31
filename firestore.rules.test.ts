@@ -1,0 +1,198 @@
+/**
+ * Firestore Security Rules — Dirty Dozen Adversarial Verification Suite
+ */
+export interface DirtyDozenTestCase {
+  id: number;
+  name: string;
+  collection: string;
+  docId: string;
+  operation: 'get' | 'list' | 'create' | 'update' | 'delete';
+  auth: { uid: string; email: string; email_verified: boolean } | null;
+  payload?: Record<string, unknown>;
+  expectedResult: 'PERMISSION_DENIED';
+}
+
+export const DIRTY_DOZEN_TEST_CASES: DirtyDozenTestCase[] = [
+  {
+    id: 1,
+    name: 'Unauthenticated Profile Creation',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'create',
+    auth: null,
+    payload: {
+      uid: 'user_1',
+      email: 'citizen@example.com',
+      displayName: 'Citizen One',
+      photoURL: '',
+      role: 'CITIZEN',
+      accessStatus: 'APPROVED',
+      districtCode: 'KOL',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 2,
+    name: 'Unverified Email Admin Spoof',
+    collection: 'users',
+    docId: 'user_2',
+    operation: 'update',
+    auth: { uid: 'spoof_admin', email: 'leaplearnindia@gmail.com', email_verified: false },
+    payload: { role: 'ADMIN' },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 3,
+    name: 'Self-Privilege Escalation on Registration',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'create',
+    auth: { uid: 'user_1', email: 'citizen@example.com', email_verified: true },
+    payload: {
+      uid: 'user_1',
+      email: 'citizen@example.com',
+      displayName: 'Citizen One',
+      photoURL: '',
+      role: 'ADMIN',
+      accessStatus: 'APPROVED',
+      districtCode: 'KOL',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 4,
+    name: 'Shadow Field Injection on Create',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'create',
+    auth: { uid: 'user_1', email: 'citizen@example.com', email_verified: true },
+    payload: {
+      uid: 'user_1',
+      email: 'citizen@example.com',
+      displayName: 'Citizen One',
+      photoURL: '',
+      role: 'CITIZEN',
+      accessStatus: 'APPROVED',
+      districtCode: 'KOL',
+      isSuperAdmin: true,
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 5,
+    name: 'Identity Spoofing (uid Mismatch)',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'create',
+    auth: { uid: 'user_2', email: 'user2@example.com', email_verified: true },
+    payload: {
+      uid: 'user_1',
+      email: 'citizen@example.com',
+      displayName: 'Citizen One',
+      photoURL: '',
+      role: 'CITIZEN',
+      accessStatus: 'APPROVED',
+      districtCode: 'KOL',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 6,
+    name: 'Role Escalation via Profile Update',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'update',
+    auth: { uid: 'user_1', email: 'citizen@example.com', email_verified: true },
+    payload: {
+      role: 'ADMIN',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 7,
+    name: 'Immortal Field Tampering (email)',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'update',
+    auth: { uid: 'user_1', email: 'citizen@example.com', email_verified: true },
+    payload: {
+      email: 'newemail@example.com',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 8,
+    name: 'Client Timestamp Forgery',
+    collection: 'users',
+    docId: 'user_1',
+    operation: 'create',
+    auth: { uid: 'user_1', email: 'citizen@example.com', email_verified: true },
+    payload: {
+      uid: 'user_1',
+      email: 'citizen@example.com',
+      displayName: 'Citizen One',
+      photoURL: '',
+      role: 'CITIZEN',
+      accessStatus: 'APPROVED',
+      districtCode: 'KOL',
+      createdAt: '2020-01-01T00:00:00Z',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 9,
+    name: 'ID Poisoning / Oversized Payload',
+    collection: 'users',
+    docId: 'invalid$id!@#',
+    operation: 'create',
+    auth: { uid: 'invalid$id!@#', email: 'citizen@example.com', email_verified: true },
+    payload: {
+      uid: 'invalid$id!@#',
+      email: 'citizen@example.com',
+      displayName: 'A'.repeat(500),
+      photoURL: '',
+      role: 'CITIZEN',
+      accessStatus: 'APPROVED',
+      districtCode: 'KOL',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 10,
+    name: 'Cross-User PII Read Leak',
+    collection: 'users',
+    docId: 'user_2',
+    operation: 'get',
+    auth: { uid: 'user_1', email: 'citizen@example.com', email_verified: true },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 11,
+    name: 'Orphaned Access Log Write',
+    collection: 'access_logs',
+    docId: 'log_orphan_1',
+    operation: 'create',
+    auth: { uid: 'non_existent_user', email: 'ghost@example.com', email_verified: true },
+    payload: {
+      uid: 'non_existent_user',
+      email: 'ghost@example.com',
+      route: '/en/dashboard',
+      role: 'CITIZEN',
+      action: 'VIEW_DASHBOARD',
+      status: 'LOGGED',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+  {
+    id: 12,
+    name: 'Terminal State Bypass on Restricted Account',
+    collection: 'users',
+    docId: 'restricted_user_1',
+    operation: 'update',
+    auth: { uid: 'restricted_user_1', email: 'restricted@example.com', email_verified: true },
+    payload: {
+      displayName: 'Updated Name After Restriction',
+    },
+    expectedResult: 'PERMISSION_DENIED',
+  },
+];
