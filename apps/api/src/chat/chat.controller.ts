@@ -1,6 +1,6 @@
 import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { ChatQueryRequest } from '@viksit/shared';
+import type { ChatQueryRequest } from '@viksit/shared';
 
 @Controller('chat')
 export class ChatController {
